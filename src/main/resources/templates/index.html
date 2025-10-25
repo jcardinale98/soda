@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+    <head th:replace="~{general/fragmentos :: head}"/>
+
+    <body>
+        <!-- Encabezado general -->
+        <header th:replace="~{general/fragmentos :: header}"/>
+
+        <!-- Sección principal: listado de usuarios -->
+        <section th:replace="~{usuario/fragmentos :: listado}"/>
+
+        <!-- Ventana modal para agregar usuario -->
+        <section th:replace="~{usuario/fragmentos :: agregar}"/>
+
+        <!-- Ventana modal para confirmar eliminación -->
+        <section th:replace="~{usuario/fragmentos :: confirmarEliminar}"/>
+
+        <!-- Mensajes tipo Toast -->
+        <section th:replace="~{general/fragmentos :: mostrarToast}"/>
+
+        <!-- Pie de página -->
+        <footer th:replace="~{general/fragmentos :: footer}"/>
+    </body>
+</html>
+
