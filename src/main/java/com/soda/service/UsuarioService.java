@@ -32,11 +32,16 @@ public class UsuarioService {
     @Transactional
     public void save(Usuario usuario, MultipartFile imagenFile) {
         usuario = usuarioRepository.save(usuario);
-        if (imagenFile != null && !imagenFile.isEmpty()) {
-            String rutaImagen = firebaseStorageService.cargaImagen(
-                    imagenFile, "usuarios", usuario.getId_listadoUsuarios().longValue());
-            usuario.setFotografia(rutaImagen);
-            usuarioRepository.save(usuario);
+
+        if (!imagenFile.isEmpty()) {
+            try {
+                String rutaImagen = firebaseStorageService.cargaImagen(
+                        imagenFile, "usuarios", usuario.getId_listadoUsuarios().longValue());
+                usuario.setFotografia(rutaImagen);
+                usuarioRepository.save(usuario);
+            } catch (Exception e) {
+                throw new RuntimeException("Error al subir la imagen a Firebase", e);
+            }
         }
     }
 

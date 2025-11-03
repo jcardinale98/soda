@@ -16,29 +16,48 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FirebaseStorageService {
+    
+    //Para ajustar esta clase utilice todo lo creado en tienda... su trabajo archivo json, su bukeck name y demás...
 
-    // Ajusta estos valores a TU proyecto real de Firebase
+    //El BuketName es el <id_del_proyecto> + ".firebasestorage.app"
     final String BucketName = "tienda-6c05b.appspot.com";
+
+    
+    //Esta es la carpeta superior de este caso
     final String rutaSuperiorStorage = "caso01";
+
+    //Ubicación donde colocó el certificado json de firebase
     final String rutaJsonFile = "firebase";
+
+    //El nombre del archivo Json
     final String archivoJsonFile = "tienda-6c05b-firebase-adminsdk-1avhq-78f35285a4.json";
 
     public String cargaImagen(MultipartFile archivoLocalCliente, String carpeta, Long id) {
         try {
+            // El nombre original del archivo local del cliene
             String extension = archivoLocalCliente.getOriginalFilename();
+
+            // Se genera el nombre según el código del articulo. 
             String fileName = "img" + sacaNumero(id) + extension;
 
+            // Se convierte/sube el archivo a un archivo temporal
             File file = this.convertToFile(archivoLocalCliente);
+
+            // se copia a Firestore y se obtiene el url válido de la imagen (por 10 años) 
             String URL = this.uploadFile(file, carpeta, fileName);
+
+            // Se elimina el archivo temporal cargado desde el cliente
             file.delete();
 
             return URL;
         } catch (IOException e) {
-            throw new RuntimeException("Error subiendo imagen a Firebase", e);
+            e.printStackTrace();
+            return null;
         }
     }
 
     private String uploadFile(File file, String carpeta, String fileName) throws IOException {
+        //Se define el lugar y acceso al archivo .jasper
         ClassPathResource json = new ClassPathResource(rutaJsonFile + File.separator + archivoJsonFile);
         BlobId blobId = BlobId.of(BucketName, rutaSuperiorStorage + "/" + carpeta + "/" + fileName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("media").build();
@@ -46,19 +65,22 @@ public class FirebaseStorageService {
         Credentials credentials = GoogleCredentials.fromStream(json.getInputStream());
         Storage storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
         storage.create(blobInfo, Files.readAllBytes(file.toPath()));
-        return storage
-                .signUrl(blobInfo, 3650, TimeUnit.DAYS, SignUrlOption.signWith((ServiceAccountSigner) credentials))
-                .toString();
+        String url = storage.signUrl(blobInfo, 3650, TimeUnit.DAYS, SignUrlOption.signWith((ServiceAccountSigner) credentials)).toString();
+        return url;
     }
 
+    //Método utilitario que convierte el archivo desde el equipo local del usuario a un archivo temporal en el servidor
     private File convertToFile(MultipartFile archivoLocalCliente) throws IOException {
         File tempFile = File.createTempFile("img", null);
-        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+        try (
+                FileOutputStream fos = new FileOutputStream(tempFile)) {
             fos.write(archivoLocalCliente.getBytes());
         }
+
         return tempFile;
     }
 
+    //Método utilitario para obtener un string con ceros....
     private String sacaNumero(long id) {
         return String.format("%019d", id);
     }
